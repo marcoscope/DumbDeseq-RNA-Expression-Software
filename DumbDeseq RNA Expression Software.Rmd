@@ -1,0 +1,133 @@
+---
+title: "DumbDeseq: RNA Expression Analysis Project"
+output: html_notebook
+---
+This project involves the analysis of a processed RNA-seq dataset derived from an experiment comparing gene expression between diseased cell lines and diseased cell lines treated with Compound X. The primary aim is to explore how treatment with Compound X alters gene expression levels in the diseased state.
+
+The table below displays the first six genes from the dataset. Each row includes the gene name, the log₂ fold change   in expression between untreated and treated samples, the p-value indicating the statistical significance of the change, and the adjusted p-value (padj) for multiple testing correction.
+```{r}
+library(ggplot2)
+library(dplyr)
+library(RColorBrewer)
+library(ggrepel)
+Genes <- RNA.exper
+head(Genes)
+```
+---------------------------------------------
+
+This volcano plot visualizes the differential gene expression between diseased cell lines and those treated with Compound X. Each point represents a gene, plotted by its log₂ fold change (x-axis) and the -log₁₀ of its p-value (y-axis). Genes are color-coded based on significance thresholds:
+
+          Upregulated genes (log₂FC > 1 and p < 0.01) are shown in red
+
+          Downregulated genes (log₂FC < -1 and p < 0.01) are shown in blue
+
+          Genes that do not meet significance criteria are labeled as "Not significant" and appear in grey
+
+Dashed vertical red lines indicate fold change thresholds at ±1, and the dashed horizontal blue line indicates the significance threshold (p = 0.01). This plot helps to quickly identify genes with both statistically significant and biologically meaningful changes in expression.
+
+```{r}
+Genes <- Genes %>%
+  mutate(diffexpressed = case_when(
+    log2FoldChange > 1 & pvalue < 0.01 ~ "Upregulated",
+    log2FoldChange < -1 & pvalue < 0.01 ~ "Downregulated",
+    TRUE ~ "Not significant"))
+
+```
+
+```{r}
+ggplot(data = Genes, aes(x = log2FoldChange, y = -log10(pvalue), col = diffexpressed)) +
+  geom_point(size = 1.5, alpha = 0.6) +  
+  geom_vline(xintercept = c(-1, 1), linetype = "dashed", col = "red") +
+  geom_hline(yintercept = -log10(0.01), linetype = "dashed", col = "blue") +
+  scale_color_manual(
+    values = c("Downregulated" = "blue", 
+               "Not significant" = "grey", 
+               "Upregulated" = "red")
+  ) +
+  labs(
+    title = "Differential Gene Expression",
+    x = "Log2 Fold",
+    y = "p-value",
+    color = "Expression"
+  ) +
+  theme(
+    axis.title.y = element_text(face = "bold", margin = margin(0,20,0,0), size = rel(1.1), color = 'black'),
+    axis.title.x = element_text(hjust = 0.5, face = "bold", margin = margin(20,0,0,0), size = rel(1.1), color = 'black'),
+    plot.title = element_text(hjust = 0.5),
+ legend.position = "topright") +
+  theme_set(theme_classic(base_size = 20))
+```
+Differential Expression Summary
+To identify significantly altered genes, we applied a filtering criterion of:
+
+log₂ fold change > 1 and p-value < 0.01 for upregulated genes
+
+log₂ fold change < -1 and p-value < 0.01 for downregulated genes
+
+Based on these thresholds:
+
+  Number of upregulated genes: 19
+
+  Number of downregulated genes: 91
+
+```{r}
+up_genes <- Genes %>%
+  filter(log2FoldChange > 1 & pvalue < 0.01)
+
+down_genes <- Genes %>%
+  filter(log2FoldChange < -1 & pvalue < 0.01)
+cat("Number of upregulated genes:", nrow(up_genes), "\n")
+cat("Number of downregulated genes:", nrow(down_genes), "\n")
+```
+```{r}
+head(down_genes, 5)
+```
+there's the most 5 genes and their function that down regulated :
+
+1-TBX5 Function:
+-DNA-binding protein that regulates the transcription of several genes and is involved in heart development and limb pattern formation and 
+Binds to the core DNA motif of NPPA promoter.
+
+2- IFITM1 Function:
+-IFN-induced antiviral protein which inhibits the entry of viruses to the host cell cytoplasm.
+-Can inhibit: influenza virus hemagglutinin protein-mediated viral entry.
+-Plays a key role in the antiproliferative action of IFN-gamma either by inhibiting the ERK activation or
+by arresting cell growth in G1 phase in a p53-dependent manner.
+
+3-LAMA2 Function:
+-Binding to cells via a high affinity receptor, laminin is thought to mediate the attachment, migration and organization of cells
+into tissues during embryonic development by interacting with other extracellular matrix components.
+
+4-CAV2 Function:
+-May act as a scaffolding protein within caveolar membranes.
+-Interacts directly with G-protein alpha subunits and can functionally regulate their activity.
+-Acts as an accessory protein in conjunction with CAV1 in targeting to lipid rafts and driving caveolae formation.
+
+5-TNN Function:
+-Extracellular matrix protein that seems to be a ligand for ITGA8:ITGB1, ITGAV:ITGB1 and ITGA4:ITGB1 (By similarity) .
+Involved in neurite outgrowth and cell migration in hippocampal explants.
+-During endochondral bone formation, inhibits proliferation and differentiation of proteoblasts mediated by canonical WNT signaling.
+-In tumors, stimulates angiogenesis by elongation, migration and sprouting of endothelial cells.
+
+```{r}
+head(up_genes, 5)
+```
+there's the most 5 genes and their function that up-regulated :
+
+1-EMILIN2 Function:
+-May be responsible for anchoring smooth muscle cells to elastic fibers, and may be involved not only in the formation of the elastic fiber, 
+but also in the processes that regulate vessel assembly.
+-Has cell adhesive capacity.
+
+2-POU3F4 Function:
+-Probable transcription factor which exert its primary action widely during early neuraldevelopment and in avery limited set of neurons 
+in the mature brain.
+
+3-LOC285954(INHBA-AS1) No data available for this gene.
+
+4-VEPH1 Function:
+Interacts with TGF-beta receptor type-1 (TGFBR1) and inhibits dissociation of activated SMAD2 from TGFBR1, impeding its nuclear accumulation 
+and resulting in impaired TGF-beta signaling.
+May also affect FOXO, Hippo and WNT signaling. 
+
+5-DTHD1 also No data available for this gene.
