@@ -1,0 +1,21 @@
+---
+title: "smallfile"
+output: html_notebook
+---
+
+```{r}
+ToothGrowth
+```
+
+```{r}
+par(mfrow = c(1,2))
+
+with(subset(ToothGrowth, supp == "OJ"),boxplot(len~dose , xlab = "Dose" , 
+                                               ylab = "length of tooth" ,
+                                               col = "orange" , main = "Orange juice")) 
+
+with(subset(ToothGrowth, supp == "VC"),boxplot(len~dose , xlab = "Dose" , 
+                                               ylab = "length of tooth" ,
+                                               col = "blue" , main = "Vitamin C"))
+```
+
